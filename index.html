@@ -1,0 +1,2469 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>機智的門徒生活 | 森林生態日誌</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500&family=Noto+Serif+TC:wght@400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- 引入 Lucide Icons -->
+    <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
+    
+    <!-- 引入 SQL.js (用於讀取 SQLite 資料庫) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+
+    <style>
+        :root {
+            /* 自然生態色票 */
+            --bg-paper: #F1F3F2;
+            --text-primary: #3E3B39;
+            --text-secondary: #757575;
+            --accent-green: #6B8E23;
+            --accent-soft-green: #A3C1AD;
+            --accent-blue: #8FA4AE;
+            --accent-brown: #8D7B68;
+            --accent-flower: #D8A69E;
+            --accent-alert: #D85C42;
+            --border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: linear-gradient(to bottom, #FAFAFA, #E8ECE9);
+            color: var(--text-primary);
+            line-height: 1.8;
+            letter-spacing: 0.05em;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, .serif-font { font-family: 'Noto Serif TC', serif; }
+        .eng-script { font-family: 'Playfair Display', serif; font-style: italic; }
+
+        /* 導覽列：極度通透 */
+        .nature-nav {
+            border-bottom: 1px solid rgba(255,255,255,0.4);
+            background-color: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.01);
+        }
+
+        .nav-item {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            padding: 0.5rem 0.8rem;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+            color: var(--accent-green);
+            border-color: rgba(107, 142, 35, 0.3);
+        }
+
+        .nav-item.active {
+            color: var(--accent-green);
+            background-color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+            border-color: rgba(107, 142, 35, 0.3);
+            box-shadow: 0 2px 10px rgba(107, 142, 35, 0.05);
+        }
+
+        /* 透明信紙卡片 (核心容器) */
+        .stationery-card {
+            background-color: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            padding: 3rem 2rem;
+            box-shadow: 
+                0 10px 40px -10px rgba(0, 0, 0, 0.03),
+                inset 0 0 20px rgba(255, 255, 255, 0.5);
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            border-radius: 16px;
+        }
+        .stationery-card::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 250px; height: 250px;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='40' stroke='%236B8E23' stroke-width='1' opacity='0.05' stroke-dasharray='5 5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            pointer-events: none;
+        }
+
+        /* 經文金句卡片 */
+        .verse-card-highlight {
+            background-color: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(107, 142, 35, 0.3);
+            padding: 2.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.02);
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 聖經瀏覽器與搜尋框 */
+        .bible-browser-container { margin-top: 2rem; }
+        .bible-book-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px;
+        }
+        .bible-book-item {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            padding: 10px; text-align: center; border-radius: 8px;
+            cursor: pointer; transition: all 0.3s; font-size: 0.9rem; color: var(--text-secondary);
+        }
+        .bible-book-item:hover {
+            border-color: var(--accent-green); color: var(--accent-green);
+            transform: translateY(-2px); background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .chapter-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 8px;
+        }
+        .chapter-item {
+            background: rgba(163, 193, 173, 0.2);
+            padding: 8px; text-align: center; border-radius: 6px;
+            cursor: pointer; color: var(--accent-green); font-weight: bold; border: 1px solid transparent;
+        }
+        .chapter-item:hover { background: var(--accent-green); color: white; border-color: var(--accent-green); }
+
+        .search-box { display: flex; gap: 8px; margin-bottom: 1.5rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .search-input {
+            flex: 1; padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50px;
+            outline: none; transition: all 0.3s;
+            backdrop-filter: blur(4px);
+        }
+        .search-input:focus { border-color: var(--accent-green); background: rgba(255,255,255,0.9); box-shadow: 0 0 0 4px rgba(107, 142, 35, 0.1); }
+        .search-btn {
+            background: var(--accent-green); color: white; border: none; padding: 0 20px;
+            border-radius: 50px; cursor: pointer; transition: opacity 0.3s;
+            box-shadow: 0 4px 10px rgba(107, 142, 35, 0.3);
+        }
+        .search-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* 一般按鈕 */
+        .nature-btn {
+            background-color: rgba(255, 255, 255, 0.6);
+            border: 1px solid var(--accent-green); color: var(--accent-green);
+            padding: 0.5rem 1.5rem; font-size: 0.9rem; letter-spacing: 0.1em;
+            transition: all 0.3s ease; border-radius: 50px;
+            display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer;
+            backdrop-filter: blur(2px);
+        }
+        .nature-btn:hover { background-color: var(--accent-green); color: white; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(107, 142, 35, 0.2); }
+
+        /* 經文按鈕 */
+        .scripture-btn { background-color: rgba(241, 248, 233, 0.6); border-color: #81C784; color: #33691e; }
+        .scripture-btn:hover { background-color: #33691e; color: white; }
+
+        /* 讀經進度按鈕 (專屬樣式) */
+        .reading-plan-btn {
+            background-color: white;
+            border: 1px solid rgba(107, 142, 35, 0.2);
+            color: #3E3B39;
+            padding: 1rem;
+            border-radius: 16px;
+            text-align: left;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .reading-plan-btn:hover {
+            border-color: var(--accent-green);
+            background-color: rgba(107, 142, 35, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(107, 142, 35, 0.1);
+        }
+        .reading-plan-btn .label {
+            font-size: 0.7rem;
+            color: var(--accent-green);
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .reading-plan-btn .content {
+            font-size: 1.1rem;
+            font-family: 'Noto Serif TC', serif;
+            font-weight: 600;
+        }
+        .reading-plan-btn i {
+            position: absolute;
+            right: 1rem;
+            bottom: 1rem;
+            opacity: 0.1;
+            width: 24px;
+            height: 24px;
+            color: var(--accent-green);
+        }
+
+        /* 通用卡片 (透明化) */
+        .clean-card {
+            background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.6); padding: 2rem;
+            transition: all 0.4s ease; height: 100%; display: flex; flex-direction: column; border-radius: 16px;
+        }
+        .clean-card:hover {
+            border-color: var(--accent-blue); transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.7);
+            box-shadow: 0 15px 30px rgba(143, 164, 174, 0.15);
+        }
+
+        .date-badge {
+            font-family: 'Playfair Display', serif; color: var(--accent-brown); font-size: 0.85rem; letter-spacing: 0.1em;
+            text-transform: uppercase; border: 1px solid var(--border-color); padding: 2px 14px; border-radius: 20px;
+            display: inline-block; margin-bottom: 0.5rem; background: rgba(255, 255, 255, 0.6);
+        }
+        
+        .must-read-badge {
+            background-color: var(--accent-alert); color: white; font-size: 0.75rem; padding: 2px 12px;
+            border-radius: 15px; display: inline-flex; align-items: center; gap: 4px;
+            box-shadow: 0 2px 8px rgba(216, 92, 66, 0.3); animation: pulse-slow 3s infinite;
+        }
+        @keyframes pulse-slow { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.9; } }
+
+        .divider-water {
+            height: 10px; background-image: url("data:image/svg+xml,%3Csvg width='40' height='10' viewBox='0 0 40 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 5 Q 10 0 20 5 T 40 5' stroke='%23D6D2CC' fill='none' opacity='0.5' /%3E%3C/svg%3E");
+            background-repeat: repeat-x; margin: 2rem 0; width: 100%;
+        }
+
+        .fade-in { animation: fadeIn 0.8s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none; }
+        
+        .framed-image {
+            padding: 10px; background: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.6); border-radius: 2px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); transform: rotate(1deg);
+        }
+
+        /* Chaplain Styles */
+        .chaplain-tab-btn {
+            padding: 0.75rem 1.5rem;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: all 0.3s;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .chaplain-tab-btn.active {
+            color: var(--accent-green);
+            border-bottom-color: var(--accent-green);
+        }
+        .emotion-group {
+            margin-bottom: 1.2rem;
+        }
+        .emotion-group-title {
+            font-size: 0.85rem;
+            color: #8D7B68;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .emotion-group-title::before {
+            content: '';
+            width: 4px;
+            height: 14px;
+            background-color: var(--accent-green);
+            border-radius: 2px;
+        }
+        .emotion-chip {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid var(--accent-blue);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .emotion-chip:hover, .emotion-chip.selected {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+        /* Custom colors for emotion types */
+        .emotion-chip.positive:hover, .emotion-chip.positive.selected { background: #81C784; border-color: #81C784; }
+        .emotion-chip.neutral:hover, .emotion-chip.neutral.selected { background: #90A4AE; border-color: #90A4AE; }
+        .emotion-chip.negative:hover, .emotion-chip.negative.selected { background: #E57373; border-color: #E57373; }
+
+        .form-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid rgba(141, 123, 104, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            margin-bottom: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .form-input:focus {
+            border-color: var(--accent-green);
+            background: rgba(255, 255, 255, 0.8);
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #5d4037;
+            font-size: 0.95rem;
+        }
+        
+        .prayer-item-card {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .prayer-item-card.answered {
+            background: rgba(107, 142, 35, 0.1);
+            border-color: var(--accent-green);
+        }
+        .prayer-status-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+        
+        /* Filter Button Styles */
+        .filter-btn {
+            font-size: 0.85rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(107, 142, 35, 0.2);
+            background: rgba(255, 255, 255, 0.5);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover { background: rgba(107, 142, 35, 0.1); }
+        .filter-btn.active {
+            background: var(--accent-green);
+            color: white;
+            border-color: var(--accent-green);
+        }
+
+        /* Flip Card Styles for Trivia */
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 400px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+        .flip-card-front {
+            background: rgba(255, 255, 255, 0.8);
+            color: #3E3B39;
+        }
+        .flip-card-back {
+            background: #6B8E23;
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        /* Quiz Styles */
+        .quiz-option {
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .quiz-option:hover:not(:disabled) {
+            background-color: rgba(107, 142, 35, 0.1);
+            border-color: var(--accent-green);
+        }
+        .quiz-option.correct {
+            background-color: #d1fae5; /* green-100 */
+            border-color: #10b981; /* green-500 */
+            color: #065f46;
+        }
+        .quiz-option.wrong {
+            background-color: #fee2e2; /* red-100 */
+            border-color: #ef4444; /* red-500 */
+            color: #991b1b;
+        }
+        .quiz-progress-bar {
+            transition: width 1s linear;
+        }
+
+        /* Modal */
+        #bible-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(60, 60, 58, 0.4); backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 100; display: none; justify-content: center; align-items: center;
+        }
+        #bible-modal.show { display: flex; }
+        .modal-content {
+            background: rgba(255, 252, 248, 0.98); width: 90%; max-width: 700px; max-height: 85vh;
+            border-radius: 12px; padding: 2.5rem; overflow-y: auto; position: relative;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.8);
+        }
+        .close-modal { position: absolute; top: 1.5rem; right: 1.5rem; cursor: pointer; color: #8d6e63; transition: transform 0.2s; }
+        .close-modal:hover { transform: rotate(90deg); }
+        .verse-text { font-family: 'Noto Serif TC', serif; line-height: 2.2; margin-bottom: 0.8rem; color: #2c1810; font-size: 1.05rem; }
+        .verse-num { color: var(--accent-green); font-size: 0.75em; margin-right: 0.8em; vertical-align: super; font-weight: bold; opacity: 0.8; }
+        .search-result-item { padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; }
+        .search-result-item:hover { background: rgba(107, 142, 35, 0.08); border-radius: 4px; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <!-- 遠山 -->
+        <svg class="absolute bottom-0 w-full h-64 text-[#C5C9C7] opacity-60" viewBox="0 0 1200 250" preserveAspectRatio="none" fill="currentColor">
+            <path d="M0 250 C 300 100 500 280 800 120 C 1000 60 1100 200 1200 150 L 1200 250 L 0 250 Z" opacity="0.5"/>
+            <path d="M0 250 C 150 180 300 240 450 200 C 600 160 750 220 900 190 C 1050 160 1200 220 1200 250 L 0 250 Z" opacity="0.8"/>
+        </svg>
+
+        <!-- 左下的兩棵樹 (替換原本的動物) -->
+        <svg class="absolute bottom-10 left-[3%] w-20 h-20 text-[#8D7B68] opacity-40" viewBox="0 0 100 100" fill="currentColor">
+             <path d="M50 10 L 15 65 L 35 65 L 20 85 L 80 85 L 65 65 L 85 65 Z" />
+             <rect x="45" y="85" width="10" height="15" />
+        </svg>
+        <svg class="absolute bottom-16 left-[9%] w-14 h-14 text-[#706C66] opacity-30" viewBox="0 0 100 100" fill="currentColor">
+             <path d="M50 5 L 20 60 L 35 60 L 25 80 L 75 80 L 65 60 L 80 60 Z" />
+             <rect x="46" y="80" width="8" height="20" />
+        </svg>
+        
+        <!-- 右下的樹木 -->
+        <svg class="absolute bottom-28 right-[12%] w-16 h-16 text-[#706C66] opacity-30" viewBox="0 0 100 100" fill="currentColor">
+             <path d="M50 10 L 20 60 L 35 60 L 25 80 L 75 80 L 65 60 L 80 60 Z" />
+             <rect x="46" y="80" width="8" height="15" />
+        </svg>
+
+        <!-- 光暈 -->
+        <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-white/60 to-transparent pointer-events-none"></div>
+    </div>
+
+    <!-- 導覽列 -->
+    <nav class="nature-nav sticky top-0 z-50">
+        <div class="container mx-auto px-6 max-w-5xl">
+            <div class="flex flex-col md:flex-row justify-between items-center py-3">
+                <div class="flex items-center gap-3 mb-4 md:mb-0 group cursor-pointer" onclick="switchTab('section-today')">
+                    <div class="w-12 h-12 relative text-[#3E3B39] transition-transform duration-700 group-hover:rotate-6">
+                        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                            <circle cx="50" cy="50" r="45" stroke="#D6D2CC" />
+                            <path d="M20 80 C 20 80 40 85 50 80 C 60 85 80 80 80 80" stroke="#3E3B39" />
+                            <path d="M20 75 C 20 75 40 80 50 75 C 60 80 80 75 80 75" stroke="#3E3B39" opacity="0.5"/>
+                            <path d="M25 75 L 40 45 L 55 75" stroke="#8FA4AE" />
+                            <path d="M50 75 L 70 35 L 90 75" stroke="#8FA4AE" />
+                            <path d="M35 75 L 35 55" stroke="#6B8E23" stroke-width="2"/>
+                            <circle cx="35" cy="50" r="10" fill="#6B8E23" fill-opacity="0.1" stroke="#6B8E23"/>
+                            <path d="M50 80 C 50 80 45 90 55 95" stroke="#8FA4AE" />
+                            <path d="M60 25 Q 65 20 70 25" stroke="#8D7B68" />
+                            <path d="M70 25 Q 75 20 80 25" stroke="#8D7B68" />
+                        </svg>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-lg font-serif tracking-widest text-[#3E3B39] font-bold">機智的門徒生活</span>
+                        <span class="text-[0.65rem] text-[#706C66] tracking-[0.2em] uppercase">Life in the Forest</span>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap justify-center gap-1">
+                    <button onclick="switchTab('section-today')" id="nav-today" class="nav-item active">
+                        <i data-lucide="book-open-check" class="w-4 h-4"></i> 通識中心
+                    </button>
+                    <button onclick="switchTab('section-verses')" id="nav-verses" class="nav-item">
+                        <i data-lucide="library" class="w-4 h-4"></i> 圖書館
+                    </button>
+                    <button onclick="switchTab('section-prayers')" id="nav-prayers" class="nav-item">
+                        <i data-lucide="church" class="w-4 h-4"></i> 校牧室
+                    </button>
+                    <button onclick="switchTab('section-school')" id="nav-school" class="nav-item">
+                        <i data-lucide="graduation-cap" class="w-4 h-4"></i> 學霸養成班
+                    </button>
+                    <button onclick="switchTab('section-games')" id="nav-games" class="nav-item">
+                        <i data-lucide="tent" class="w-4 h-4"></i> 課外活動
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
+        
+        <div id="loading" class="flex flex-col items-center justify-center py-20 text-[#8D7B68]">
+            <i data-lucide="loader-2" class="w-8 h-8 animate-spin mb-4 text-[#6B8E23]"></i>
+            <p class="text-sm tracking-widest">正在森林裡尋找智慧...</p>
+        </div>
+
+        <div id="main-content" class="min-h-[500px] opacity-0 transition-opacity duration-1000">
+
+            <section id="section-today" class="page-section fade-in">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-serif text-[#3E3B39] mb-2">通識中心</h1>
+                    <p class="eng-script text-[#8D7B68]">Daily Manna</p>
+                </div>
+                <div class="stationery-card">
+                    <div id="daily-content" class="flex flex-col items-center justify-center text-center"></div>
+                </div>
+            </section>
+
+            <section id="section-verses" class="page-section hidden fade-in">
+                <div id="blessing-container" class="mb-12">
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-serif text-[#6B8E23]">今日金句</h2>
+                        <p class="text-xs text-[#8D7B68] tracking-widest mt-1">BLESSING VERSE</p>
+                    </div>
+                    <div id="blessing-card-area"></div>
+                </div>
+                <div class="w-full h-px bg-[rgba(214,210,204,0.6)] my-10"></div>
+                <div id="bible-browser" class="bible-browser-container">
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-serif text-[#3E3B39]">聖經藏書閣</h2>
+                        <p class="text-xs text-[#8D7B68] tracking-widest mt-1">HOLY BIBLE LIBRARY</p>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="bible-search-input" placeholder="輸入關鍵字 (如: 愛, 光)..." class="search-input" onkeypress="handleSearch(event)">
+                        <button onclick="performSearch()" class="search-btn"><i data-lucide="search" class="w-4 h-4"></i></button>
+                    </div>
+                    <div id="bible-display-area" class="bg-[rgba(255,255,255,0.4)] backdrop-blur-md p-6 rounded-lg border border-[rgba(255,255,255,0.6)] min-h-[300px]">
+                        <div class="text-center text-gray-400 py-10">
+                            <i data-lucide="library" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+                            <p>載入聖經目錄中...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-prayers" class="page-section hidden fade-in">
+                <!-- Chaplain Content rendered by JS -->
+                <div id="chaplain-content"></div>
+            </section>
+
+            <section id="section-school" class="page-section hidden fade-in">
+                <div id="school-menu">
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-serif text-[#3E3B39]">學霸養成班</h2>
+                        <p class="eng-script text-[#8D7B68]">Bible Study & Trivia</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Menu Items generated by JS -->
+                    </div>
+                </div>
+                <div id="school-quiz-area" class="hidden">
+                    <!-- Quiz Interface generated by JS -->
+                </div>
+            </section>
+
+            <section id="section-games" class="page-section hidden fade-in">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-serif text-[#3E3B39]">課外活動</h2>
+                    <p class="eng-script text-[#8D7B68]">Fellowship</p>
+                </div>
+                <div id="grid-games" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
+            </section>
+
+        </div>
+
+        <footer class="mt-24 border-t border-[rgba(255,255,255,0.5)] pt-8 pb-12 text-center text-xs text-[#8D7B68] tracking-widest">
+            <p>© 機智的門徒生活 | WITTY DISCIPLE LIFE</p>
+            <div class="mt-4 flex justify-center gap-4 text-xs text-[#8D7B68]">
+                <button onclick="exportData()" class="hover:text-[#6B8E23] flex items-center gap-1 transition-colors cursor-pointer">
+                    <i data-lucide="download" class="w-3 h-3"></i> 備份資料
+                </button>
+                <div class="w-px h-3 bg-[#8D7B68] opacity-30 self-center"></div>
+                <button onclick="document.getElementById('import-file').click()" class="hover:text-[#6B8E23] flex items-center gap-1 transition-colors cursor-pointer">
+                    <i data-lucide="upload" class="w-3 h-3"></i> 匯入資料
+                </button>
+                <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(this)">
+            </div>
+        </footer>
+    </div>
+
+    <div id="bible-modal" onclick="closeBibleModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <!-- 新的關閉按鈕，置於右上角 -->
+            <button onclick="closeBibleModal()" class="absolute top-6 right-6 flex items-center justify-center gap-1 text-xs text-[#6B8E23] hover:text-[#556B2F] transition-colors bg-[#F1F3F2] px-4 py-1.5 rounded-full shadow-sm z-50">
+                <i data-lucide="x" class="w-3 h-3"></i>
+                <span>關閉</span>
+            </button>
+            <div class="text-center mb-6">
+                <h3 id="modal-title" class="text-2xl font-serif text-[#3E3B39] font-bold">經文閱讀</h3>
+                <div class="w-12 h-px bg-[#8D7B68] mx-auto mt-2"></div>
+            </div>
+            <div id="modal-body" class="text-lg text-[#4e342e]"></div>
+        </div>
+    </div>
+
+    <script>
+        try { if (window.lucide) window.lucide.createIcons(); } catch (e) {}
+
+        const DEVOTION_DATA_URL = 'https://raw.githubusercontent.com/annelin0321/witty-bible-data/main/devotionals.json';
+        const BLESSING_VERSES_URL = 'https://raw.githubusercontent.com/annelin0321/witty-bible-data/main/blessing-verses.json';
+        const BIBLE_DB_URL = 'https://raw.githubusercontent.com/annelin0321/bible-zh/main/bible_complete.db';
+        const PRAYERS_DATA_URL = 'https://raw.githubusercontent.com/annelin0321/witty-bible-data/main/prayers.json';
+
+        // Quiz Configurations
+        const QUIZ_CONFIG = [
+            {
+                id: 'exam',
+                title: '聖經大會考',
+                subtitle: '限時挑戰 (3分鐘)',
+                icon: 'timer',
+                type: 'exam', // Timed, batch score
+                url: 'https://raw.githubusercontent.com/annelin0321/witty-bible-data/main/bible-quiz.json',
+                desc: '測驗你的聖經綜合能力，時間到才算分喔！'
+            },
+            {
+                id: 'messiah',
+                title: '遇見彌賽亞',
+                subtitle: '耶穌生平',
+                icon: 'cross',
+                type: 'practice', // Instant feedback
+                url: 'https://raw.githubusercontent.com/annelin0321/witty-bible-data/main/life-of-jesus.json',
+                desc: '深入了解耶穌的生平與教導。'
+            },
+            {
+                id: 'characters',
+                title: '聖經人物',
+                subtitle: '人物誌',
+                icon: 'users',
+                type: 'practice',
+                url: 'https://raw.githubusercontent.com/annelin0321/witty-bible-data/main/bible-characters.json',
+                desc: '猜猜他是誰？認識聖經中的關鍵人物。'
+            },
+            {
+                id: 'geography',
+                title: '聖經地理',
+                subtitle: '地圖導覽',
+                icon: 'map',
+                type: 'practice',
+                url: 'https://raw.githubusercontent.com/annelin0321/witty-bible-data/main/bible-geography.json',
+                desc: '跟著聖經去旅行，探索應許之地。'
+            },
+            {
+                id: 'trivia',
+                title: '聖經冷知識',
+                subtitle: '翻牌問答',
+                icon: 'lightbulb',
+                type: 'trivia', // Flip card
+                url: 'https://raw.githubusercontent.com/annelin0321/witty-bible-data/main/bible-trivia.json',
+                desc: '原來聖經還有這些小知識？翻牌見真章！'
+            }
+        ];
+
+        let db = null;
+        let isDbLoading = false;
+        let bibleBooksCache = [];
+        let devotionalsData = [];
+        let prayersData = []; // Store fetched prayers
+        let dbCols = {};
+        
+        // Quiz State
+        let currentQuizData = [];
+        let currentQuizConfig = null;
+        let currentQuestionIndex = 0;
+        let quizScore = 0;
+        let quizTimer = null;
+        let quizTimeLeft = 0;
+        let userExamAnswers = []; // For exam mode results
+
+        let editingPrayerId = null; // Track which prayer is being edited
+        let currentPrayerFilter = 'all'; // 'all', 'praying', 'answered'
+
+        // One Year Bible Plan Data (Generated for common reading plan logic)
+        const bibleReadingPlan = {};
+        
+        // Expanded Emotion Vocabulary based on Psychology/Psychiatry models
+        const emotionCategories = {
+            "愉悅與連結 (Joy & Connection)": [
+                "幸福", "滿足", "興奮", "感激", "自豪", "樂觀", "狂喜", "被愛", 
+                "敬畏", "熱情", "充滿希望", "親密", "信任", "安詳", "被接納"
+            ],
+            "平靜與效能 (Peace & Efficacy)": [
+                "平靜", "放鬆", "專注", "沉思", "勝任感", "穩定", "自在", "釋懷", 
+                "正念", "清醒", "踏實", "從容"
+            ],
+            "憤怒與敵意 (Anger & Hostility)": [
+                "憤怒", "煩躁", "挫折", "敵意", "憤慨", "激動", "暴怒", "被冒犯", 
+                "防衛", "輕蔑", "怨恨", "不平", "厭煩"
+            ],
+            "悲傷與失落 (Sadness & Loss)": [
+                "悲傷", "憂鬱", "失望", "絕望", "哀慟", "孤獨", "淒涼", "心碎", 
+                "無助", "受傷", "遺憾", "消沉", "空虛"
+            ],
+            "恐懼與焦慮 (Fear & Anxiety)": [
+                "焦慮", "擔憂", "恐慌", "緊張", "恐懼", "不安", "壓迫感", "疑慮", 
+                "脆弱", "驚嚇", "戒慎", "神經質", "窒息感"
+            ],
+            "自覺情緒 (Self-Conscious)": [
+                "羞愧", "內疚", "尷尬", "懊悔", "羞辱", "自責", "嫉妒", "羨慕", 
+                "自卑", "無地自容"
+            ],
+            "認知與狀態 (Cognitive & State)": [
+                "驚訝", "震驚", "困惑", "矛盾", "茫然", "麻木", "疏離", "猶豫", 
+                "疲憊", "混亂", "抽離"
+            ]
+        };
+
+        async function init() {
+            try {
+                generateReadingPlan();
+                checkFutureLetters(); // Check letters on load
+                
+                await Promise.all([
+                    fetchData(),
+                    fetchBlessingVerses(),
+                    fetchPrayers()
+                ]);
+                
+                initBibleDB().then(() => {
+                    const area = document.getElementById('bible-display-area');
+                    if(area && area.innerText.includes('載入聖經目錄中')) {
+                        renderBibleBrowserHome();
+                    }
+                });
+            } catch (err) {
+                console.error("Initialization Error:", err);
+            }
+        }
+
+        async function fetchPrayers() {
+            try {
+                const res = await fetch(PRAYERS_DATA_URL);
+                if (res.ok) {
+                    prayersData = await res.json();
+                } else {
+                    console.warn("Using default prayers due to fetch error");
+                }
+            } catch(e) { console.error("Failed to fetch prayers", e); }
+        }
+
+        function generateReadingPlan() {
+            // Sample Data for January (approximate One Year Bible)
+            const janData = [
+                {d:1, ot:"創世記 1-2", nt:"馬太福音 1", ps:"詩篇 1", pr:"箴言 1:1-6"},
+                {d:2, ot:"創世記 3-5", nt:"馬太福音 2", ps:"詩篇 2", pr:"箴言 1:7-9"},
+                {d:3, ot:"創世記 6-8", nt:"馬太福音 3", ps:"詩篇 3", pr:"箴言 1:10-19"},
+                {d:4, ot:"創世記 9-11", nt:"馬太福音 4", ps:"詩篇 4", pr:"箴言 1:20-33"},
+                {d:5, ot:"創世記 12-14", nt:"馬太福音 5:1-26", ps:"詩篇 5", pr:"箴言 2:1-5"},
+                {d:6, ot:"創世記 15-17", nt:"馬太福音 5:27-48", ps:"詩篇 6", pr:"箴言 2:6-15"},
+                {d:7, ot:"創世記 18-19", nt:"馬太福音 6", ps:"詩篇 7", pr:"箴言 2:16-22"},
+                {d:8, ot:"創世記 20-22", nt:"馬太福音 7", ps:"詩篇 8", pr:"箴言 3:1-6"},
+                {d:9, ot:"創世記 23-24", nt:"馬太福音 8:1-17", ps:"詩篇 9:1-12", pr:"箴言 3:7-10"},
+                {d:10, ot:"創世記 25-26", nt:"馬太福音 8:18-34", ps:"詩篇 9:13-20", pr:"箴言 3:11-12"},
+                {d:11, ot:"創世記 27-28", nt:"馬太福音 9:1-17", ps:"詩篇 10:1-11", pr:"箴言 3:13-18"},
+                {d:12, ot:"創世記 29-30", nt:"馬太福音 9:18-38", ps:"詩篇 10:12-18", pr:"箴言 3:19-26"},
+                {d:13, ot:"創世記 31", nt:"馬太福音 10:1-23", ps:"詩篇 11", pr:"箴言 3:27-32"},
+                {d:14, ot:"創世記 32-33", nt:"馬太福音 10:24-42", ps:"詩篇 12", pr:"箴言 3:33-35"},
+                {d:15, ot:"創世記 34-35", nt:"馬太福音 11:1-19", ps:"詩篇 13", pr:"箴言 4:1-9"},
+                {d:16, ot:"創世記 36-37", nt:"馬太福音 11:20-30", ps:"詩篇 14", pr:"箴言 4:10-19"},
+                {d:17, ot:"創世記 38-40", nt:"馬太福音 12:1-21", ps:"詩篇 15", pr:"箴言 4:20-27"},
+                {d:18, ot:"創世記 41", nt:"馬太福音 12:22-50", ps:"詩篇 16", pr:"箴言 5:1-6"},
+                {d:19, ot:"創世記 42-43", nt:"馬太福音 13:1-23", ps:"詩篇 17", pr:"箴言 5:7-14"},
+                {d:20, ot:"創世記 44-45", nt:"馬太福音 13:24-43", ps:"詩篇 18:1-15", pr:"箴言 5:15-23"},
+                {d:21, ot:"創世記 46-48", nt:"馬太福音 13:44-58", ps:"詩篇 18:16-36", pr:"箴言 6:1-5"},
+                {d:22, ot:"創世記 49-50", nt:"馬太福音 14:1-21", ps:"詩篇 18:37-50", pr:"箴言 6:6-11"},
+                {d:23, ot:"出埃及記 1-3", nt:"馬太福音 14:22-36", ps:"詩篇 19", pr:"箴言 6:12-15"},
+                {d:24, ot:"出埃及記 4-6", nt:"馬太福音 15:1-20", ps:"詩篇 20", pr:"箴言 6:16-19"},
+                {d:25, ot:"出埃及記 7-8", nt:"馬太福音 15:21-39", ps:"詩篇 21", pr:"箴言 6:20-26"},
+                {d:26, ot:"出埃及記 9-10", nt:"馬太福音 16", ps:"詩篇 22:1-11", pr:"箴言 6:27-35"},
+                {d:27, ot:"出埃及記 11-12", nt:"馬太福音 17", ps:"詩篇 22:12-31", pr:"箴言 7:1-5"},
+                {d:28, ot:"出埃及記 13-15", nt:"馬太福音 18:1-20", ps:"詩篇 23", pr:"箴言 7:6-23"},
+                {d:29, ot:"出埃及記 16-18", nt:"馬太福音 18:21-35", ps:"詩篇 24", pr:"箴言 7:24-27"},
+                {d:30, ot:"出埃及記 19-21", nt:"馬太福音 19:1-15", ps:"詩篇 25:1-11", pr:"箴言 8:1-11"},
+                {d:31, ot:"出埃及記 22-24", nt:"馬太福音 19:16-30", ps:"詩篇 25:12-22", pr:"箴言 8:12-13"}
+            ];
+            janData.forEach(day => { bibleReadingPlan[`1-${day.d}`] = day; });
+        }
+
+        /* --- Chaplain Office Logic --- */
+        function renderChaplainOffice() {
+            const container = document.getElementById('chaplain-content');
+            
+            // Random Prayer with Backup
+            let randomPrayer = null;
+            if (prayersData.length > 0) {
+                randomPrayer = prayersData[Math.floor(Math.random() * prayersData.length)];
+            } else {
+                // Default fallback prayers to ensure content is always shown
+                const defaults = [
+                    { title: "主禱文", ref: "馬太福音 6:9-13", fullText: "我們在天上的父：\n願人都尊你的名為聖。\n願你的國降臨；\n願你的旨意行在地上，\n如同行在天上。\n我們日用的飲食，今日賜給我們。\n免我們的債，如同我們免了人的債。\n不叫我們遇見試探；\n救我們脫離兇惡。\n因為國度、權柄、榮耀，全是你的，\n直到永遠。阿們。" },
+                    { title: "尼布爾的寧靜禱文", ref: "Reinhold Niebuhr", fullText: "神啊，\n請賜給我寧靜，\n去接受我無法改變的事；\n賜給我勇氣，\n去改變我能改變的事；\n並賜給我智慧，\n去分辨這兩者的差別。" }
+                ];
+                randomPrayer = defaults[Math.floor(Math.random() * defaults.length)];
+            }
+            
+            // Try to handle case-insensitive keys if JSON structure varies
+            const title = randomPrayer.title || randomPrayer.Title || "今日禱告";
+            const ref = randomPrayer.ref || randomPrayer.Ref || randomPrayer.reference || "";
+            const text = randomPrayer.fullText || randomPrayer.fulltext || randomPrayer.Fulltext || randomPrayer.content || randomPrayer.Content || "內容讀取中...";
+
+            // Build Emotion Tags HTML
+            let emotionHtml = '';
+            for (const [category, emotions] of Object.entries(emotionCategories)) {
+                let typeClass = 'neutral';
+                // Update styling logic for new formal categories
+                if(category.includes('愉悅') || category.includes('平靜')) typeClass = 'positive';
+                else if(category.includes('憤怒') || category.includes('悲傷') || category.includes('恐懼') || category.includes('自覺')) typeClass = 'negative';
+                
+                emotionHtml += `
+                    <div class="emotion-group">
+                        <div class="emotion-group-title">${category}</div>
+                        <div class="flex flex-wrap gap-1">
+                            ${emotions.map(e => `<span class="emotion-chip ${typeClass}" onclick="toggleEmotion(this)">${e}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Get Today's Date and Reading Plan for Devotion
+            const dObj = new Date();
+            const m = dObj.getMonth() + 1;
+            const d = dObj.getDate();
+            const plan = bibleReadingPlan[`${m}-${d}`];
+            const planText = plan ? `${plan.ot} | ${plan.nt} | ${plan.ps} | ${plan.pr}` : '自行閱讀';
+
+            // Tabs UI
+            const html = `
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-serif text-[#3E3B39]">校牧室</h2>
+                    <p class="eng-script text-[#8D7B68]">Chaplain's Office</p>
+                </div>
+
+                <!-- Prayer Card -->
+                <div class="stationery-card mb-12">
+                    <div id="daily-prayer-display">
+                        <div class="flex flex-col items-center text-center mb-6">
+                            <h3 class="text-xl font-bold text-[#6B8E23] mb-2">${title}</h3>
+                            <span class="text-xs text-gray-400 border border-gray-300 rounded px-2 py-0.5">${ref}</span>
+                        </div>
+                        <p class="text-[#585858] leading-relaxed whitespace-pre-wrap mb-6 font-light text-center">${text}</p>
+                        <div class="text-center">
+                            <button onclick="refreshPrayer()" class="text-xs text-[#8D7B68] hover:text-[#6B8E23] flex items-center justify-center gap-1 mx-auto transition-colors">
+                                <i data-lucide="refresh-cw" class="w-3 h-3"></i> 換一則禱告
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tools Navigation -->
+                <div class="flex justify-center border-b border-gray-200 mb-8 overflow-x-auto">
+                    <div class="flex gap-4 px-4 pb-1">
+                        <div class="chaplain-tab-btn active" onclick="switchChaplainTab('tab-devotion', this)">靈修筆記</div>
+                        <div class="chaplain-tab-btn" onclick="switchChaplainTab('tab-prayer-list', this)">禱告日記</div>
+                        <div class="chaplain-tab-btn" onclick="switchChaplainTab('tab-gratitude', this)">感恩日記</div>
+                        <div class="chaplain-tab-btn" onclick="switchChaplainTab('tab-emotion', this)">情緒日記</div>
+                        <div class="chaplain-tab-btn" onclick="switchChaplainTab('tab-letter', this)">時空膠囊</div>
+                    </div>
+                </div>
+
+                <!-- Tools Content -->
+                <div id="tab-devotion" class="chaplain-tab-content fade-in">
+                    <div class="bg-white/60 p-6 rounded-xl border border-gray-100 shadow-sm max-w-2xl mx-auto">
+                        <p class="text-center text-sm text-[#8D7B68] mb-6">聆聽神聲音，回應祂的愛。</p>
+                        
+                        <label class="form-label">今日經文 (Today's Scripture)</label>
+                        <input type="text" class="form-input bg-gray-100/50" value="${planText}" readonly>
+
+                        <label class="form-label">經文大意 (Summary)</label>
+                        <textarea id="dev-summary" class="form-input" rows="3" placeholder="試著用自己的話寫下這段經文在說什麼..."></textarea>
+
+                        <label class="form-label">最有感動的一句經文 (Rhema)</label>
+                        <input id="dev-verse" type="text" class="form-input" placeholder="哪一句話抓住了你的心？">
+
+                        <label class="form-label">生活應用 (Application)</label>
+                        <textarea id="dev-app" class="form-input" rows="2" placeholder="這段經文如何應用在我今天的生活中？"></textarea>
+
+                        <label class="form-label">天父的心意 (Father's Heart)</label>
+                        <textarea id="dev-heart" class="form-input" rows="2" placeholder="透過這段經文，天父想對你說什麼？"></textarea>
+
+                        <label class="form-label">回應禱告 (Response)</label>
+                        <textarea id="dev-prayer" class="form-input" rows="3" placeholder="親愛的天父..."></textarea>
+                        
+                        <div class="text-center mt-4">
+                            <button onclick="saveDevotion()" class="nature-btn">儲存筆記</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-prayer-list" class="chaplain-tab-content hidden fade-in">
+                    <div class="bg-white/60 p-6 rounded-xl border border-gray-100 shadow-sm max-w-2xl mx-auto">
+                        <p class="text-center text-sm text-[#8D7B68] mb-6">彼此代求，經歷神的大能。</p>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="form-label">對象 (Target)</label>
+                                <select id="pray-target" class="form-input">
+                                    <option value="為自己">為自己</option>
+                                    <option value="為別人">為別人</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">狀態 (Status)</label>
+                                <select id="pray-status" class="form-input">
+                                    <option value="praying">禱告中 🙏</option>
+                                    <option value="answered">已成就 🎉</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <label class="form-label">禱告事項 (Topic)</label>
+                        <input id="pray-topic" type="text" class="form-input" placeholder="例如：工作的挑戰、家人的健康...">
+
+                        <label class="form-label">禱告內容 (Content)</label>
+                        <textarea id="pray-content" class="form-input" rows="3" placeholder="具體的禱告內容..."></textarea>
+
+                        <div class="text-center mt-4 mb-8 flex justify-center gap-2">
+                            <button id="btn-save-prayer" onclick="savePrayer()" class="nature-btn">加入禱告事項</button>
+                            <button id="btn-cancel-edit" onclick="cancelEdit()" class="nature-btn hidden border-red-300 text-red-400 hover:bg-red-50 hover:text-red-500">取消編輯</button>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-6">
+                            <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                                <h4 class="font-bold text-[#6B8E23]">我的禱告清單</h4>
+                                <div class="flex gap-2">
+                                    <button onclick="setPrayerFilter('all')" id="filter-all" class="filter-btn active">全部</button>
+                                    <button onclick="setPrayerFilter('praying')" id="filter-praying" class="filter-btn">禱告中</button>
+                                    <button onclick="setPrayerFilter('answered')" id="filter-answered" class="filter-btn">已成就</button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <input type="text" id="prayer-search" oninput="renderPrayerList()" placeholder="🔍 搜尋禱告事項..." class="w-full px-4 py-2 rounded-full border border-gray-200 bg-white/50 focus:outline-none focus:border-[#6B8E23] text-sm">
+                            </div>
+
+                            <div id="prayer-list-display" class="space-y-2">
+                                <!-- Prayer List Rendered Here -->
+                                <p class="text-center text-gray-400 text-sm">目前沒有紀錄</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-gratitude" class="chaplain-tab-content hidden fade-in">
+                    <div class="bg-white/60 p-6 rounded-xl border border-gray-100 shadow-sm max-w-2xl mx-auto">
+                        <p class="text-center text-sm text-[#8D7B68] mb-6">數算恩典，看見神的手。</p>
+                        <label class="form-label">發生了什麼事？(Event)</label>
+                        <textarea id="grat-event" class="form-input" rows="3" placeholder="紀錄一件今天發生的小事..."></textarea>
+                        
+                        <label class="form-label">我看見神的作為了嗎？(God's Work)</label>
+                        <textarea id="grat-god" class="form-input" rows="3" placeholder="神在其中做了什麼，或教會了我什麼？"></textarea>
+                        
+                        <div class="text-center mt-4">
+                            <button onclick="saveDiary('gratitude')" class="nature-btn">紀錄恩典</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-emotion" class="chaplain-tab-content hidden fade-in">
+                    <div class="bg-white/60 p-6 rounded-xl border border-gray-100 shadow-sm max-w-2xl mx-auto">
+                        <p class="text-center text-sm text-[#8D7B68] mb-6">誠實面對情緒，帶到神面前。</p>
+                        
+                        <label class="form-label">事件 (Event)</label>
+                        <input id="emo-event" type="text" class="form-input" placeholder="發生了什麼引發情緒的事？">
+
+                        <label class="form-label">情緒標註 (Emotion)</label>
+                        <div class="mb-4" id="emotion-tags">
+                            ${emotionHtml}
+                        </div>
+                        <input type="hidden" id="emo-selected">
+
+                        <label class="form-label">我以為 / 我相信 (Belief)</label>
+                        <textarea id="emo-belief" class="form-input" rows="2" placeholder="當下我心裡是怎麼想的？"></textarea>
+
+                        <label class="form-label">神如何看 (God's View)</label>
+                        <textarea id="emo-god" class="form-input" rows="2" placeholder="神的話語或真理是怎麼說的？"></textarea>
+
+                        <label class="form-label">回應禱告 (Prayer)</label>
+                        <textarea id="emo-prayer" class="form-input" rows="3" placeholder="根據新的看見，向神禱告..."></textarea>
+
+                        <div class="text-center mt-4">
+                            <button onclick="saveDiary('emotion')" class="nature-btn">完成日記</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-letter" class="chaplain-tab-content hidden fade-in">
+                    <div class="bg-white/60 p-6 rounded-xl border border-gray-100 shadow-sm max-w-2xl mx-auto">
+                        <p class="text-center text-sm text-[#8D7B68] mb-6">寫給未來的自己，信心的宣告。</p>
+                        
+                        <label class="form-label">寄送日期 (Future Date)</label>
+                        <input id="letter-date" type="date" class="form-input">
+
+                        <label class="form-label">收信信箱 (Email) <span class="text-xs font-normal opacity-50">(目前僅供紀錄)</span></label>
+                        <input id="letter-email" type="email" class="form-input" placeholder="name@example.com">
+
+                        <label class="form-label">給未來的自己 (Content)</label>
+                        <textarea id="letter-content" class="form-input" rows="6" placeholder="我想對未來的自己說..."></textarea>
+
+                        <div class="text-center mt-4">
+                            <button onclick="saveLetter()" class="nature-btn">投遞信件</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+            if(window.lucide) lucide.createIcons();
+            renderPrayerList(); // Initial render of prayer list
+        }
+
+        function refreshPrayer() {
+            let p = null;
+            if (prayersData.length > 0) {
+                p = prayersData[Math.floor(Math.random() * prayersData.length)];
+            } else {
+                 const defaults = [
+                    { title: "主禱文", ref: "馬太福音 6:9-13", fullText: "我們在天上的父：\n願人都尊你的名為聖。\n願你的國降臨；\n願你的旨意行在地上，\n如同行在天上。\n我們日用的飲食，今日賜給我們。\n免我們的債，如同我們免了人的債。\n不叫我們遇見試探；\n救我們脫離兇惡。\n因為國度、權柄、榮耀，全是你的，\n直到永遠。阿們。" },
+                    { title: "尼布爾的寧靜禱文", ref: "Reinhold Niebuhr", fullText: "神啊，\n請賜給我寧靜，\n去接受我無法改變的事；\n賜給我勇氣，\n去改變我能改變的事；\n並賜給我智慧，\n去分辨這兩者的差別。" }
+                ];
+                p = defaults[Math.floor(Math.random() * defaults.length)];
+            }
+
+            const title = p.title || p.Title || "今日禱告";
+            const ref = p.ref || p.Ref || "";
+            const text = p.fullText || p.fulltext || p.Fulltext || p.content || "";
+
+            const display = document.getElementById('daily-prayer-display');
+            if (display) {
+                display.innerHTML = `
+                      <div class="flex flex-col items-center text-center mb-6 fade-in">
+                        <h3 class="text-xl font-bold text-[#6B8E23] mb-2">${title}</h3>
+                        <span class="text-xs text-gray-400 border border-gray-300 rounded px-2 py-0.5">${ref}</span>
+                    </div>
+                    <p class="text-[#585858] leading-relaxed whitespace-pre-wrap mb-6 font-light fade-in text-center">${text}</p>
+                    <div class="text-center">
+                        <button onclick="refreshPrayer()" class="text-xs text-[#8D7B68] hover:text-[#6B8E23] flex items-center justify-center gap-1 mx-auto transition-colors">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i> 換一則禱告
+                        </button>
+                    </div>
+                `;
+                if(window.lucide) lucide.createIcons();
+            }
+        }
+
+        function switchChaplainTab(tabId, btn) {
+            document.querySelectorAll('.chaplain-tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.querySelectorAll('.chaplain-tab-btn').forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+            
+            if(tabId === 'tab-prayer-list') {
+                renderPrayerList();
+            }
+        }
+
+        function toggleEmotion(el) {
+            el.classList.toggle('selected');
+        }
+
+        function saveDiary(type) {
+            const today = new Date().toLocaleDateString();
+            let data = {};
+            let storeKey = '';
+            
+            if (type === 'gratitude') {
+                const event = document.getElementById('grat-event').value;
+                const god = document.getElementById('grat-god').value;
+                if(!event) { showModalInfo("提示", "請填寫發生的事"); return; }
+                data = { id: Date.now(), date: today, event, god };
+                storeKey = 'witty_gratitude';
+                
+                // Clear
+                document.getElementById('grat-event').value = '';
+                document.getElementById('grat-god').value = '';
+            } else {
+                const event = document.getElementById('emo-event').value;
+                const belief = document.getElementById('emo-belief').value;
+                const god = document.getElementById('emo-god').value;
+                const prayer = document.getElementById('emo-prayer').value;
+                // Get selected emotions
+                const emotions = Array.from(document.querySelectorAll('.emotion-chip.selected')).map(el => el.innerText);
+                
+                if(!event) { showModalInfo("提示", "請填寫事件"); return; }
+                
+                data = { id: Date.now(), date: today, event, emotions, belief, god, prayer };
+                storeKey = 'witty_emotions';
+                
+                // Clear
+                document.getElementById('emo-event').value = '';
+                document.getElementById('emo-belief').value = '';
+                document.getElementById('emo-god').value = '';
+                document.getElementById('emo-prayer').value = '';
+                document.querySelectorAll('.emotion-chip').forEach(c => c.classList.remove('selected'));
+            }
+            
+            const list = JSON.parse(localStorage.getItem(storeKey) || '[]');
+            list.unshift(data);
+            localStorage.setItem(storeKey, JSON.stringify(list));
+            
+            showModalInfo("紀錄成功", type === 'gratitude' ? "感恩日記已儲存" : "情緒日記已儲存");
+        }
+
+        function saveDevotion() {
+            const summary = document.getElementById('dev-summary').value;
+            const verse = document.getElementById('dev-verse').value;
+            const app = document.getElementById('dev-app').value;
+            const heart = document.getElementById('dev-heart').value;
+            const prayer = document.getElementById('dev-prayer').value;
+            
+            if(!summary && !verse) {
+                showModalInfo("請填寫內容", "請至少寫下經文大意或感動經文喔！");
+                return;
+            }
+
+            const data = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString(),
+                summary, verse, app, heart, prayer
+            };
+
+            const list = JSON.parse(localStorage.getItem('witty_devotions') || '[]');
+            list.unshift(data);
+            localStorage.setItem('witty_devotions', JSON.stringify(list));
+
+            // Clear inputs
+            document.getElementById('dev-summary').value = '';
+            document.getElementById('dev-verse').value = '';
+            document.getElementById('dev-app').value = '';
+            document.getElementById('dev-heart').value = '';
+            document.getElementById('dev-prayer').value = '';
+
+            showModalInfo("靈修筆記已儲存", "願神的話語成為你腳前的燈，路上的光。");
+        }
+
+        // ... savePrayer, editPrayer, etc. ...
+
+        // Backup and Import Functions
+        function exportData() {
+            const data = {
+                prayers: JSON.parse(localStorage.getItem('witty_prayers') || '[]'),
+                letters: JSON.parse(localStorage.getItem('witty_letters') || '[]'),
+                devotions: JSON.parse(localStorage.getItem('witty_devotions') || '[]'),
+                gratitude: JSON.parse(localStorage.getItem('witty_gratitude') || '[]'),
+                emotions: JSON.parse(localStorage.getItem('witty_emotions') || '[]'),
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `witty_backup_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.prayers) localStorage.setItem('witty_prayers', JSON.stringify(data.prayers));
+                    if (data.letters) localStorage.setItem('witty_letters', JSON.stringify(data.letters));
+                    if (data.devotions) localStorage.setItem('witty_devotions', JSON.stringify(data.devotions));
+                    if (data.gratitude) localStorage.setItem('witty_gratitude', JSON.stringify(data.gratitude));
+                    if (data.emotions) localStorage.setItem('witty_emotions', JSON.stringify(data.emotions));
+                    
+                    showModalInfo("匯入成功", "資料已成功還原！頁面將重新整理。");
+                    setTimeout(() => location.reload(), 2000);
+                } catch (err) {
+                    showModalInfo("匯入失敗", "檔案格式錯誤或損毀。");
+                }
+            };
+            reader.readAsText(file);
+            input.value = ''; // reset
+        }
+
+        function saveDevotion() {
+            const summary = document.getElementById('dev-summary').value;
+            const verse = document.getElementById('dev-verse').value;
+            
+            if(!summary && !verse) {
+                showModalInfo("請填寫內容", "請至少寫下經文大意或感動經文喔！");
+                return;
+            }
+
+            // Clear inputs
+            document.getElementById('dev-summary').value = '';
+            document.getElementById('dev-verse').value = '';
+            document.getElementById('dev-app').value = '';
+            document.getElementById('dev-heart').value = '';
+            document.getElementById('dev-prayer').value = '';
+
+            showModalInfo("靈修筆記已儲存", "願神的話語成為你腳前的燈，路上的光。");
+        }
+
+        function savePrayer() {
+            const topic = document.getElementById('pray-topic').value;
+            const content = document.getElementById('pray-content').value;
+            const target = document.getElementById('pray-target').value;
+            const status = document.getElementById('pray-status').value;
+
+            if(!topic) {
+                showModalInfo("請填寫事項", "禱告事項是必填的喔！");
+                return;
+            }
+
+            const prayers = JSON.parse(localStorage.getItem('witty_prayers') || '[]');
+
+            if (editingPrayerId) {
+                // Update Existing
+                const idx = prayers.findIndex(p => p.id === editingPrayerId);
+                if (idx !== -1) {
+                    prayers[idx].topic = topic;
+                    prayers[idx].content = content;
+                    prayers[idx].target = target;
+                    prayers[idx].status = status;
+                    // Don't update date to keep history, or update if user prefers. Keeping original for now.
+                }
+                showModalInfo("更新成功", "禱告紀錄已更新！");
+            } else {
+                // Create New
+                const newPrayer = {
+                    id: Date.now(),
+                    date: new Date().toLocaleDateString(),
+                    topic,
+                    content,
+                    target,
+                    status
+                };
+                prayers.unshift(newPrayer);
+                showModalInfo("禱告已紀錄", "我們知道神聽我們的禱告，這是我們向祂所存坦然無懼的心。");
+            }
+
+            localStorage.setItem('witty_prayers', JSON.stringify(prayers));
+            cancelEdit(); // Reset form
+            renderPrayerList();
+        }
+
+        function editPrayer(id) {
+            const prayers = JSON.parse(localStorage.getItem('witty_prayers') || '[]');
+            const prayer = prayers.find(p => p.id === id);
+            if (!prayer) return;
+
+            // Fill inputs
+            document.getElementById('pray-topic').value = prayer.topic;
+            document.getElementById('pray-content').value = prayer.content;
+            document.getElementById('pray-target').value = prayer.target;
+            document.getElementById('pray-status').value = prayer.status;
+
+            // Set Edit Mode
+            editingPrayerId = id;
+            document.getElementById('btn-save-prayer').textContent = "更新紀錄";
+            document.getElementById('btn-cancel-edit').classList.remove('hidden');
+
+            // Scroll to form
+            document.getElementById('tab-prayer-list').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            editingPrayerId = null;
+            document.getElementById('pray-topic').value = '';
+            document.getElementById('pray-content').value = '';
+            document.getElementById('btn-save-prayer').textContent = "加入禱告事項";
+            document.getElementById('btn-cancel-edit').classList.add('hidden');
+        }
+
+        function setPrayerFilter(filter) {
+            currentPrayerFilter = filter;
+            // Update UI buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`filter-${filter}`).classList.add('active');
+            renderPrayerList();
+        }
+
+        function renderPrayerList() {
+            const container = document.getElementById('prayer-list-display');
+            if(!container) return;
+            
+            const allPrayers = JSON.parse(localStorage.getItem('witty_prayers') || '[]');
+            const searchTerm = document.getElementById('prayer-search') ? document.getElementById('prayer-search').value.toLowerCase() : '';
+            
+            // Filter Logic
+            const prayers = allPrayers.filter(p => {
+                const matchesFilter = currentPrayerFilter === 'all' || p.status === currentPrayerFilter;
+                const matchesSearch = !searchTerm || p.topic.toLowerCase().includes(searchTerm) || p.content.toLowerCase().includes(searchTerm);
+                return matchesFilter && matchesSearch;
+            });
+            
+            if(prayers.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 text-sm py-4">沒有符合條件的禱告紀錄</p>';
+                return;
+            }
+
+            let html = '';
+            prayers.forEach(p => {
+                const isAnswered = p.status === 'answered';
+                const statusBadge = isAnswered 
+                    ? '<span class="prayer-status-badge bg-green-100 text-green-700 border border-green-300">已成就 🎉</span>' 
+                    : '<span class="prayer-status-badge bg-yellow-100 text-yellow-700 border border-yellow-300">禱告中 🙏</span>';
+                
+                const cardClass = isAnswered ? 'prayer-item-card answered' : 'prayer-item-card';
+
+                html += `
+                    <div class="${cardClass}">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <span class="text-xs text-gray-500 mr-2">${p.date}</span>
+                                <span class="text-xs font-bold text-[#8D7B68] border border-[#8D7B68] px-1 rounded">${p.target}</span>
+                            </div>
+                            ${statusBadge}
+                        </div>
+                        <h4 class="font-bold text-[#3E3B39] mb-1">${p.topic}</h4>
+                        ${p.content ? `<p class="text-sm text-gray-600 mb-3 whitespace-pre-wrap">${p.content}</p>` : ''}
+                        
+                        <div class="flex justify-end gap-2 mt-2 border-t border-gray-200/50 pt-2">
+                            <button onclick="editPrayer(${p.id})" class="text-xs text-[#6B8E23] hover:underline flex items-center gap-1"><i data-lucide="edit-2" class="w-3 h-3"></i> 編輯</button>
+                            <button onclick="deletePrayer(${p.id})" class="text-xs text-red-400 hover:text-red-600 hover:underline flex items-center gap-1"><i data-lucide="trash-2" class="w-3 h-3"></i> 刪除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            if(window.lucide) lucide.createIcons();
+        }
+
+        function deletePrayer(id) {
+            if(confirm('確定要刪除這則禱告紀錄嗎？')) {
+                const prayers = JSON.parse(localStorage.getItem('witty_prayers') || '[]');
+                const newPrayers = prayers.filter(p => p.id !== id);
+                localStorage.setItem('witty_prayers', JSON.stringify(newPrayers));
+                renderPrayerList();
+            }
+        }
+
+        function saveLetter() {
+            const date = document.getElementById('letter-date').value;
+            const content = document.getElementById('letter-content').value;
+            if(!date || !content) {
+                showModalInfo("請填寫完整", "日期與內容是必填的喔！");
+                return;
+            }
+            
+            // Save to local storage for "Time Capsule" check
+            const letters = JSON.parse(localStorage.getItem('witty_letters') || '[]');
+            letters.push({ date: date, content: content, read: false });
+            localStorage.setItem('witty_letters', JSON.stringify(letters));
+
+            document.getElementById('letter-content').value = '';
+            showModalInfo("信件已投遞", `這封信將在 ${date} 送達給未來的你。`);
+        }
+
+        function checkFutureLetters() {
+            const letters = JSON.parse(localStorage.getItem('witty_letters') || '[]');
+            const today = new Date().toISOString().split('T')[0];
+            let hasLetter = false;
+
+            letters.forEach((l, idx) => {
+                if (!l.read && l.date <= today) {
+                    // Found a letter!
+                    showModalInfo("收到一封來自過去的信", l.content);
+                    l.read = true;
+                    hasLetter = true;
+                }
+            });
+
+            if (hasLetter) {
+                localStorage.setItem('witty_letters', JSON.stringify(letters));
+            }
+        }
+
+        function showModalInfo(title, text) {
+            const modal = document.getElementById('bible-modal');
+            const mTitle = document.getElementById('modal-title');
+            const mBody = document.getElementById('modal-body');
+            mTitle.innerText = title;
+            mBody.innerHTML = `<p class="whitespace-pre-wrap">${text}</p>
+            <div class="text-center mt-6">
+                <button onclick="closeBibleModal()" class="nature-btn">關閉</button>
+            </div>`;
+            modal.classList.add('show');
+        }
+
+        async function initBibleDB() {
+            if (db) return db;
+            if (isDbLoading) return new Promise(resolve => {
+                const check = setInterval(() => { if(db || !isDbLoading) { clearInterval(check); resolve(db); } }, 100);
+            });
+
+            isDbLoading = true;
+            try {
+                const SQL = await initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.wasm` });
+                const response = await fetch(BIBLE_DB_URL);
+                if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const buffer = await response.arrayBuffer();
+                db = new SQL.Database(new Uint8Array(buffer));
+                console.log("Bible DB Loaded");
+                
+                const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table'")[0].values;
+                let validTable = tables.find(t => /bible|verse|scripture/i.test(t[0]));
+                if (!validTable) validTable = tables.find(t => t[0] !== 'sqlite_sequence');
+                const tableName = validTable ? validTable[0] : tables[0][0];
+                
+                const cols = db.exec(`PRAGMA table_info(${tableName})`)[0].values.map(r=>r[1]);
+                console.log("DB Table:", tableName, "Cols:", cols);
+                
+                dbCols = {
+                    tableName: tableName,
+                    book: cols.find(c => /book|b|書|vol/i.test(c)) || cols[0],
+                    chap: cols.find(c => /chapter|chap|c|章/i.test(c)) || cols[1],
+                    ver: cols.find(c => /verse|v|節/i.test(c)) || cols[2],
+                    text: cols.find(c => /lection|content|text|scripture|經文|經文/i.test(c)) || cols[cols.length - 1]
+                };
+
+                return db;
+            } catch (err) {
+                console.error("DB Error", err);
+                const container = document.getElementById('bible-display-area');
+                if(container) container.innerHTML = `<p class="text-red-500 text-center py-10">資料庫讀取失敗 (${err.message})<br>請重新整理或檢查網路。</p>`;
+                return null;
+            } finally {
+                isDbLoading = false;
+            }
+        }
+
+        async function renderBibleBrowserHome() {
+            const container = document.getElementById('bible-display-area');
+            if (!db) {
+                container.innerHTML = '<div class="flex flex-col items-center py-10 text-gray-500"><i data-lucide="loader-2" class="animate-spin w-8 h-8 mb-2"></i><p>正在搬運聖經書卷...</p></div>';
+                if(window.lucide) lucide.createIcons();
+                await initBibleDB();
+                if (!db) return;
+            }
+
+            try {
+                const res = db.exec(`SELECT DISTINCT ${dbCols.book} FROM ${dbCols.tableName}`);
+                const books = res[0].values.flat();
+                bibleBooksCache = books;
+
+                let html = '<div class="bible-book-grid">';
+                books.forEach(book => {
+                    html += `<div class="bible-book-item" onclick="renderChapters('${book}')">${book}</div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+
+            } catch (e) {
+                container.innerHTML = `<p class="text-red-500 text-center">發生錯誤: ${e.message}</p>`;
+            }
+        }
+
+        function renderChapters(bookName) {
+            const container = document.getElementById('bible-display-area');
+            try {
+                const res = db.exec(`SELECT DISTINCT ${dbCols.chap} FROM ${dbCols.tableName} WHERE ${dbCols.book} = '${bookName}'`);
+                const chapters = res[0].values.flat();
+
+                let html = `
+                    <div class="mb-4 flex items-center gap-2">
+                        <button onclick="renderBibleBrowserHome()" class="text-sm text-[#6B8E23] hover:underline">
+                            <i data-lucide="arrow-left" class="w-3 h-3 inline"></i> 返回書卷
+                        </button>
+                        <span class="text-[#3E3B39] font-bold"> > ${bookName}</span>
+                    </div>
+                    <div class="chapter-grid">
+                `;
+                chapters.forEach(chap => {
+                    html += `<div class="chapter-item" onclick="openScripture('${bookName} ${chap}')">${chap}</div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+                if(window.lucide) lucide.createIcons();
+
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function handleSearch(e) { if(e.key === 'Enter') performSearch(); }
+        
+        function performSearch() {
+            const keyword = document.getElementById('bible-search-input').value.trim();
+            const container = document.getElementById('bible-display-area');
+            if(!keyword) { renderBibleBrowserHome(); return; }
+            if(!db) return;
+
+            try {
+                const query = `SELECT ${dbCols.book}, ${dbCols.chap}, ${dbCols.ver}, ${dbCols.text} FROM ${dbCols.tableName} WHERE ${dbCols.text} LIKE '%${keyword}%' LIMIT 50`;
+                const res = db.exec(query);
+
+                if (res.length === 0) {
+                    container.innerHTML = `<p class="text-center text-gray-500 mt-10">找不到包含「${keyword}」的經文。</p><button onclick="renderBibleBrowserHome()" class="block mx-auto mt-4 text-[#6B8E23]">返回目錄</button>`;
+                    return;
+                }
+
+                const rows = res[0].values;
+                let html = `
+                    <div class="mb-4 flex justify-between items-center">
+                        <span class="text-sm text-gray-500">搜尋結果: ${rows.length} 筆</span>
+                        <button onclick="renderBibleBrowserHome()" class="text-sm text-[#6B8E23]">返回目錄</button>
+                    </div>
+                    <div class="space-y-2">
+                `;
+                
+                rows.forEach(row => {
+                    const b = row[0], c = row[1], v = row[2], t = row[3];
+                    html += `
+                        <div class="search-result-item" onclick="openScripture('${b} ${c}', ${v})">
+                            <div class="text-xs text-[#6B8E23] font-bold mb-1">${b} ${c}:${v}</div>
+                            <div class="text-[#3E3B39] text-sm">${t}</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function fetchBlessingVerses() {
+            try {
+                const res = await fetch(BLESSING_VERSES_URL);
+                if(!res.ok) throw new Error("Failed");
+                const data = await res.json();
+                if(Array.isArray(data) && data.length > 0) {
+                    const randomVerse = data[Math.floor(Math.random() * data.length)];
+                    renderBlessingCard(randomVerse);
+                }
+            } catch (e) {
+                const area = document.getElementById('blessing-card-area');
+                if(area) area.innerHTML = '<p class="text-center text-gray-400">今日金句運送中...</p>';
+            }
+        }
+
+        function renderBlessingCard(item) {
+            const container = document.getElementById('blessing-card-area');
+            const text = item['完整經文'] || item['scripture'] || 'No Text';
+            const safeText = text.replace(/'/g, "\\'").replace(/\n/g, ' ');
+
+            container.innerHTML = `
+                <div class="verse-card-highlight">
+                    <p class="text-xl font-serif text-[#3E3B39] leading-relaxed mb-6">${text}</p>
+                    <button onclick="openScriptureByText('${safeText}')" class="nature-btn">
+                        <i data-lucide="book-open" class="w-4 h-4"></i>
+                        <span>閱讀整章</span>
+                    </button>
+                </div>
+            `;
+            if(window.lucide) lucide.createIcons();
+        }
+
+        function openScriptureByText(text) { openScripture(text); }
+
+        function goToBook(bookName) {
+            closeBibleModal();
+            switchTab('section-verses');
+            setTimeout(() => {
+                renderChapters(bookName);
+                const section = document.getElementById('bible-browser');
+                if(section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        async function openScripture(reference, highlightVerse = null) {
+            const modal = document.getElementById('bible-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalBody = document.getElementById('modal-body');
+            
+            modal.classList.add('show');
+            modalBody.innerHTML = `<div class="flex justify-center py-10"><i data-lucide="loader-2" class="w-8 h-8 animate-spin text-[#8D7B68]"></i></div>`;
+            if(window.lucide) lucide.createIcons();
+
+            const database = await initBibleDB();
+            if (!database) { 
+                modalBody.innerHTML = `<p class="text-center text-red-500">無法讀取資料庫。</p>`; 
+                return; 
+            }
+
+            try {
+                // Improved Regex to capture Book and the rest
+                // Matches: "Book Name" then space then "Numbers"
+                const mainMatch = reference.match(/^[\(\uff08]?\s*([\u4e00-\u9fa5]{1,10}|[1-3]?\s?[a-zA-Z]+)\s*(.*)/);
+                
+                if (mainMatch) {
+                    const bookName = mainMatch[1].trim();
+                    const rangeStr = mainMatch[2].trim();
+                    
+                    let startChap, endChap, startVer, endVer;
+                    
+                    // Check for Chapter:Verse-Verse (e.g., 1:1-6)
+                    const verseRangeMatch = rangeStr.match(/^(\d+)[:：](\d+)\s*[-–~]\s*(\d+)$/);
+                    
+                    // Check for Chapter Range (e.g., "1-2", "12-14") with NO colons
+                    const chapRangeMatch = rangeStr.match(/^(\d+)\s*[-–~]\s*(\d+)$/);
+                    
+                    // Check for Single Chapter (e.g., "1")
+                    const singleChapMatch = rangeStr.match(/^(\d+)$/);
+
+                    let query = `SELECT ${dbCols.chap}, ${dbCols.ver}, ${dbCols.text} FROM ${dbCols.tableName} WHERE ${dbCols.book} LIKE '%${bookName}%' `;
+
+                    if (verseRangeMatch) {
+                        startChap = parseInt(verseRangeMatch[1]);
+                        endChap = startChap; // Assume same chapter for now for simplicity in 1:1-6 format
+                        startVer = parseInt(verseRangeMatch[2]);
+                        endVer = parseInt(verseRangeMatch[3]);
+                        
+                        query += `AND ${dbCols.chap} = ${startChap} AND ${dbCols.ver} >= ${startVer} AND ${dbCols.ver} <= ${endVer}`;
+                    } else if (chapRangeMatch) {
+                        startChap = parseInt(chapRangeMatch[1]);
+                        endChap = parseInt(chapRangeMatch[2]);
+                        query += `AND ${dbCols.chap} >= ${startChap} AND ${dbCols.chap} <= ${endChap}`;
+                    } else if (singleChapMatch) {
+                        startChap = parseInt(singleChapMatch[1]);
+                        endChap = startChap;
+                        query += `AND ${dbCols.chap} = ${startChap}`;
+                    }
+
+                    if (startChap) {
+                        query += ` ORDER BY ${dbCols.chap}, ${dbCols.ver}`;
+                        const res = database.exec(query);
+                        
+                        if (res.length > 0) {
+                            let html = '';
+                            let currentChap = 0;
+                            
+                            res[0].values.forEach(row => {
+                                const c = row[0], v = row[1], t = row[2];
+                                
+                                // Add Chapter Header if new chapter
+                                if (c !== currentChap) {
+                                    if (currentChap !== 0) html += '<br/><hr class="my-6 border-gray-200"/><br/>'; // Spacer between chapters
+                                    // Modified: text-center -> text-left to align with scripture
+                                    html += `<div class="text-left mb-4"><span class="text-lg font-bold text-[#6B8E23] bg-[#F1F3F2] px-4 py-1 rounded-full">第 ${c} 章</span></div>`;
+                                    currentChap = c;
+                                }
+                                
+                                const isHighlight = (highlightVerse && v == highlightVerse && c === startChap) ? 'bg-yellow-50/50 p-1 rounded' : '';
+                                html += `<p id="v-${c}-${v}" class="verse-text ${isHighlight}"><span class="verse-num">${v}</span>${t}</p>`;
+                            });
+                            
+                            // Update Title
+                            modalTitle.innerHTML = `${bookName} ${rangeStr}`;
+                            
+                            // Removed: dynamic addition of "Close" button since it is now fixed in HTML
+
+                            modalBody.innerHTML = html;
+                        } else {
+                            modalTitle.innerText = "查無資料";
+                            modalBody.innerHTML = `<p class="text-center">找不到 ${bookName} ${rangeStr}<br><small class="text-gray-400">請確認資料庫書卷名 (${bookName})</small></p>`;
+                        }
+                    }
+                } else {
+                    modalTitle.innerText = "無法解析";
+                    modalBody.innerHTML = `<p class="text-center">無法辨識經文出處，請確認格式。<br><small class="text-gray-400">原文：${reference}</small></p>`;
+                }
+            } catch (e) {
+                console.error(e);
+                modalBody.innerHTML = "查詢發生錯誤";
+            }
+            if(window.lucide) lucide.createIcons();
+        }
+
+        function closeBibleModal(event) {
+            if (event && event.target.closest('.modal-content') && event.target.id !== 'bible-modal') return;
+            document.getElementById('bible-modal').classList.remove('show');
+        }
+
+        function switchTab(targetId) {
+            // 1. Reset Scroll to Top
+            window.scrollTo({ top: 0, behavior: 'instant' });
+
+            const sections = document.querySelectorAll('.page-section');
+            sections.forEach(sec => {
+                sec.classList.add('hidden');
+                sec.classList.remove('fade-in');
+            });
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                void targetSection.offsetWidth; 
+                targetSection.classList.add('fade-in');
+            }
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            
+            let btnId = 'nav-today';
+            if(targetId.includes('verses')) btnId = 'nav-verses';
+            else if(targetId.includes('prayers')) btnId = 'nav-prayers';
+            else if(targetId.includes('school')) btnId = 'nav-school';
+            else if(targetId.includes('games')) btnId = 'nav-games';
+            
+            const btn = document.getElementById(btnId);
+            if(btn) btn.classList.add('active');
+
+            if (targetId === 'section-today') {
+                if(window.devotionalsData) resetDailyView();
+            }
+            else if (targetId === 'section-verses') {
+                const area = document.getElementById('bible-display-area');
+                if(area && (area.innerHTML.trim() === '' || area.innerText.includes('搬運'))) {
+                    renderBibleBrowserHome();
+                }
+            }
+            else if (targetId === 'section-prayers') {
+                renderChaplainOffice();
+            }
+        }
+
+        async function fetchData() {
+            const loadingEl = document.getElementById('loading');
+            const mainContent = document.getElementById('main-content');
+            try {
+                const response = await fetch(DEVOTION_DATA_URL);
+                const data = await response.json();
+                loadingEl.style.display = 'none';
+                mainContent.classList.remove('opacity-0');
+                const categorized = categorizeData(data);
+                devotionalsData = categorized.devotionals; 
+                renderDailyDevotional(categorized.devotionals);
+                
+                // Initialize School Menu
+                renderSchoolMenu();
+                
+                renderSection(categorized.games, 'grid-games', 'section-games');
+                // renderSection([], 'grid-prayers', 'section-prayers'); // Don't overwrite chaplain
+            } catch(e) { console.error(e); }
+        }
+
+        /* --- School / Quiz Logic --- */
+        function renderSchoolMenu() {
+            const container = document.querySelector('#school-menu .grid');
+            if(!container) return;
+            
+            let html = '';
+            QUIZ_CONFIG.forEach(item => {
+                html += `
+                    <div onclick="initQuiz('${item.id}')" class="clean-card cursor-pointer group hover:bg-white/80">
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="p-3 rounded-full bg-[#F1F3F2] group-hover:bg-[#6B8E23] group-hover:text-white transition-colors text-[#6B8E23]">
+                                <i data-lucide="${item.icon}" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-[#3E3B39] text-lg">${item.title}</h3>
+                                <p class="text-xs text-[#8D7B68] uppercase tracking-wider">${item.subtitle}</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-500">${item.desc}</p>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            if(window.lucide) lucide.createIcons();
+        }
+
+        // Helper: Randomize Array (Fisher-Yates Shuffle)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        async function initQuiz(quizId) {
+            const config = QUIZ_CONFIG.find(c => c.id === quizId);
+            if(!config) return;
+
+            // Show loading state
+            document.getElementById('school-menu').classList.add('hidden');
+            const quizArea = document.getElementById('school-quiz-area');
+            quizArea.classList.remove('hidden');
+            quizArea.innerHTML = `<div class="flex flex-col items-center py-20"><i data-lucide="loader-2" class="w-8 h-8 animate-spin text-[#6B8E23] mb-4"></i><p class="text-[#8D7B68]">正在準備試卷...</p></div>`;
+            if(window.lucide) lucide.createIcons();
+
+            try {
+                const res = await fetch(config.url);
+                const rawData = await res.json();
+                
+                // Shuffle the questions here
+                currentQuizData = shuffleArray([...rawData]);
+                
+                currentQuizConfig = config;
+                currentQuestionIndex = 0;
+                quizScore = 0;
+                userExamAnswers = [];
+
+                if(config.type === 'exam') {
+                    startExam();
+                } else if (config.type === 'practice') {
+                    renderPracticeQuestion();
+                } else if (config.type === 'trivia') {
+                    renderTriviaCard();
+                }
+
+            } catch(e) {
+                console.error(e);
+                quizArea.innerHTML = `
+                    <div class="text-center py-10">
+                        <p class="text-red-500 mb-4">題目載入失敗</p>
+                        <button onclick="exitQuiz()" class="nature-btn">返回選單</button>
+                    </div>
+                `;
+            }
+        }
+
+        function exitQuiz() {
+            if(quizTimer) clearInterval(quizTimer);
+            document.getElementById('school-quiz-area').classList.add('hidden');
+            document.getElementById('school-menu').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* --- Exam Mode (Timed) --- */
+        function startExam() {
+            quizTimeLeft = 180; // 3 minutes
+            renderExamUI();
+            
+            quizTimer = setInterval(() => {
+                quizTimeLeft--;
+                updateTimerDisplay();
+                if(quizTimeLeft <= 0) {
+                    finishExam();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const el = document.getElementById('exam-timer');
+            const bar = document.getElementById('exam-progress');
+            if(el) {
+                const m = Math.floor(quizTimeLeft / 60);
+                const s = quizTimeLeft % 60;
+                el.innerText = `${m}:${s.toString().padStart(2, '0')}`;
+                if(quizTimeLeft < 30) el.classList.add('text-red-500');
+            }
+            if(bar) {
+                const pct = (quizTimeLeft / 180) * 100;
+                bar.style.width = `${pct}%`;
+            }
+        }
+
+        function renderExamUI() {
+            const quizArea = document.getElementById('school-quiz-area');
+            const question = currentQuizData[currentQuestionIndex];
+            const total = currentQuizData.length;
+
+            quizArea.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center mb-6 bg-white/50 p-4 rounded-xl border border-white">
+                        <div class="flex items-center gap-2 text-[#3E3B39]">
+                            <i data-lucide="file-text" class="w-5 h-5"></i>
+                            <span class="font-bold">第 ${currentQuestionIndex + 1}/${total} 題</span>
+                        </div>
+                        <div class="flex items-center gap-2 font-mono text-xl font-bold text-[#6B8E23]" id="exam-timer">
+                            3:00
+                        </div>
+                    </div>
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-8 overflow-hidden">
+                        <div id="exam-progress" class="bg-[#6B8E23] h-2 rounded-full quiz-progress-bar" style="width: 100%"></div>
+                    </div>
+
+                    <!-- Question Card -->
+                    <div class="stationery-card animate-fadeIn">
+                        <h3 class="text-xl font-bold text-[#3E3B39] mb-6 leading-relaxed">${question['題目']}</h3>
+                        <div class="space-y-3">
+                            ${generateOptionsHtml(question, 'handleExamAnswer')}
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-8">
+                        <button onclick="finishExam()" class="text-sm text-gray-400 hover:text-red-500">提早交卷</button>
+                    </div>
+                </div>
+            `;
+            if(window.lucide) lucide.createIcons();
+        }
+
+        function handleExamAnswer(selectedOption) {
+            const question = currentQuizData[currentQuestionIndex];
+            // Store user choice
+            userExamAnswers[currentQuestionIndex] = selectedOption;
+            
+            // Move to next
+            if (currentQuestionIndex < currentQuizData.length - 1) {
+                currentQuestionIndex++;
+                renderExamUI();
+                updateTimerDisplay(); // Refresh timer text immediately
+            } else {
+                finishExam();
+            }
+        }
+
+        function finishExam() {
+            if(quizTimer) clearInterval(quizTimer);
+            
+            // Calculate Score
+            let correctCount = 0;
+            let resultListHtml = '';
+
+            currentQuizData.forEach((q, idx) => {
+                const userAns = userExamAnswers[idx];
+                const correctAnsFull = q['正確答案']; // e.g. "B(xxx)"
+                const correctAnsLetter = correctAnsFull ? correctAnsFull.charAt(0).toUpperCase() : '';
+                
+                const isCorrect = userAns === correctAnsLetter;
+                if(isCorrect) correctCount++;
+
+                const statusIcon = isCorrect ? '<i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>' : '<i data-lucide="x-circle" class="w-5 h-5 text-red-500"></i>';
+                const userAnsText = userAns ? `選項${userAns}` : '未作答';
+                
+                resultListHtml += `
+                    <div class="bg-white/60 p-4 rounded-lg border ${isCorrect ? 'border-green-200' : 'border-red-200'} mb-3 text-left">
+                        <div class="flex gap-3 mb-2">
+                            <div class="mt-1">${statusIcon}</div>
+                            <div>
+                                <p class="font-bold text-[#3E3B39] text-sm mb-1">第 ${idx+1} 題：${q['題目']}</p>
+                                <div class="text-xs text-gray-500 flex flex-wrap gap-x-4 gap-y-1">
+                                    <span class="${isCorrect ? 'text-green-600' : 'text-red-500'}">你的答案：${userAnsText}</span>
+                                    <span class="text-green-600 font-bold">正確答案：${correctAnsFull}</span>
+                                </div>
+                                ${q['備註'] ? `<div class="mt-2 text-xs text-[#8D7B68] bg-[#F1F3F2] p-2 rounded"><span class="font-bold">💡 備註：</span>${q['備註']}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const score = Math.round((correctCount / currentQuizData.length) * 100);
+            
+            const quizArea = document.getElementById('school-quiz-area');
+            quizArea.innerHTML = `
+                <div class="max-w-2xl mx-auto text-center">
+                    <div class="mb-8">
+                        <div class="inline-block p-4 rounded-full bg-white shadow-lg mb-4">
+                            <span class="text-4xl font-bold ${score >= 60 ? 'text-[#6B8E23]' : 'text-[#D85C42]'}">${score}分</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-[#3E3B39]">測驗結束！</h2>
+                        <p class="text-gray-500">答對 ${correctCount} / ${currentQuizData.length} 題</p>
+                    </div>
+                    
+                    <div class="mb-8 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                        ${resultListHtml}
+                    </div>
+
+                    <div class="flex justify-center gap-4">
+                        <button onclick="exitQuiz()" class="nature-btn bg-white">返回選單</button>
+                        <button onclick="initQuiz('${currentQuizConfig.id}')" class="nature-btn">再測一次</button>
+                    </div>
+                </div>
+            `;
+            if(window.lucide) lucide.createIcons();
+        }
+
+        /* --- Practice Mode (Instant Feedback) --- */
+        function renderPracticeQuestion() {
+            const quizArea = document.getElementById('school-quiz-area');
+            const question = currentQuizData[currentQuestionIndex];
+            const total = currentQuizData.length;
+
+            quizArea.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <button onclick="exitQuiz()" class="text-sm text-[#8D7B68] hover:text-[#3E3B39] flex items-center gap-1">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> 退出
+                        </button>
+                        <span class="font-bold text-[#6B8E23]">Practice Mode</span>
+                        <span class="text-sm text-gray-500">${currentQuestionIndex + 1} / ${total}</span>
+                    </div>
+
+                    <div class="stationery-card relative overflow-hidden min-h-[400px] flex flex-col justify-center">
+                        <h3 class="text-xl font-bold text-[#3E3B39] mb-8 leading-relaxed text-center">${question['題目']}</h3>
+                        <div id="practice-options" class="space-y-3">
+                            ${generateOptionsHtml(question, 'handlePracticeAnswer')}
+                        </div>
+                        
+                        <!-- Feedback Area (Hidden initially) -->
+                        <div id="practice-feedback" class="hidden mt-6 pt-6 border-t border-gray-200 animate-fadeIn">
+                            <div id="feedback-content" class="mb-4"></div>
+                            <button onclick="nextPracticeQuestion()" class="nature-btn w-full justify-center">下一題 <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            if(window.lucide) lucide.createIcons();
+        }
+
+        function handlePracticeAnswer(selectedOption) {
+            // Disable all buttons
+            const buttons = document.querySelectorAll('#practice-options button');
+            buttons.forEach(btn => btn.disabled = true);
+
+            const question = currentQuizData[currentQuestionIndex];
+            const correctAnsFull = question['正確答案'];
+            const correctAnsLetter = correctAnsFull ? correctAnsFull.charAt(0).toUpperCase() : '';
+            const isCorrect = selectedOption === correctAnsLetter;
+
+            // Highlight
+            const selectedBtn = document.getElementById(`opt-${selectedOption}`);
+            if(selectedBtn) {
+                selectedBtn.classList.add(isCorrect ? 'correct' : 'wrong');
+                // Force remove hover effect styles manually if needed, or rely on :disabled css
+            }
+            
+            // If wrong, highlight correct one too
+            if(!isCorrect) {
+                const correctBtn = document.getElementById(`opt-${correctAnsLetter}`);
+                if(correctBtn) correctBtn.classList.add('correct');
+            }
+
+            // Show Feedback
+            const feedbackEl = document.getElementById('practice-feedback');
+            const contentEl = document.getElementById('feedback-content');
+            
+            feedbackEl.classList.remove('hidden');
+            contentEl.innerHTML = `
+                <div class="flex items-start gap-3 ${isCorrect ? 'text-green-700' : 'text-red-600'}">
+                    <i data-lucide="${isCorrect ? 'check-circle' : 'alert-circle'}" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="font-bold text-lg mb-1">${isCorrect ? '答對了！' : '答錯了'}</p>
+                        <p class="text-sm text-gray-600"><span class="font-bold">正確答案：</span>${correctAnsFull}</p>
+                        ${question['備註'] ? `<p class="text-sm text-[#8D7B68] mt-2 bg-[#F1F3F2] p-2 rounded"><span class="font-bold">備註：</span>${question['備註']}</p>` : ''}
+                    </div>
+                </div>
+            `;
+            if(window.lucide) lucide.createIcons();
+        }
+
+        function nextPracticeQuestion() {
+            if (currentQuestionIndex < currentQuizData.length - 1) {
+                currentQuestionIndex++;
+                renderPracticeQuestion();
+            } else {
+                // End of practice
+                const quizArea = document.getElementById('school-quiz-area');
+                quizArea.innerHTML = `
+                    <div class="text-center py-20 animate-fadeIn">
+                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
+                            <i data-lucide="trophy" class="w-10 h-10"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-[#3E3B39] mb-2">練習完成！</h2>
+                        <p class="text-gray-500 mb-8">你已經完成了所有題目。</p>
+                        <button onclick="exitQuiz()" class="nature-btn">返回選單</button>
+                    </div>
+                `;
+                if(window.lucide) lucide.createIcons();
+            }
+        }
+
+        /* --- Trivia Mode (Flip Card) --- */
+        function renderTriviaCard() {
+            const quizArea = document.getElementById('school-quiz-area');
+            const question = currentQuizData[currentQuestionIndex];
+            const total = currentQuizData.length;
+
+            quizArea.innerHTML = `
+                <div class="max-w-md mx-auto h-full flex flex-col">
+                    <div class="flex justify-between items-center mb-6">
+                        <button onclick="exitQuiz()" class="text-sm text-[#8D7B68] hover:text-[#3E3B39]">退出</button>
+                        <span class="font-serif italic text-xl text-[#6B8E23]">Trivia</span>
+                        <span class="text-sm text-gray-500">${currentQuestionIndex + 1} / ${total}</span>
+                    </div>
+
+                    <div class="flip-card mb-8" onclick="this.classList.toggle('flipped')">
+                        <div class="flip-card-inner">
+                            <!-- Front -->
+                            <div class="flip-card-front">
+                                <span class="absolute top-4 left-4 text-xs text-gray-400 tracking-widest">QUESTION</span>
+                                <h3 class="text-xl font-bold mb-6 leading-relaxed">${question['題目']}</h3>
+                                <div class="w-full text-left space-y-2 text-sm text-gray-600 opacity-80">
+                                    <div class="p-2 border rounded">A. ${question['選項A']}</div>
+                                    <div class="p-2 border rounded">B. ${question['選項B']}</div>
+                                    <div class="p-2 border rounded">C. ${question['選項C']}</div>
+                                    <div class="p-2 border rounded">D. ${question['選項D']}</div>
+                                </div>
+                                <div class="absolute bottom-4 text-xs text-[#6B8E23] animate-bounce">點擊翻牌查看答案</div>
+                            </div>
+                            <!-- Back -->
+                            <div class="flip-card-back">
+                                <span class="absolute top-4 left-4 text-xs text-white/60 tracking-widest">ANSWER</span>
+                                <div class="text-center">
+                                    <p class="text-6xl mb-4 font-serif text-white/20">A</p> <!-- Decorative -->
+                                    <h3 class="text-2xl font-bold mb-2">${question['正確答案']}</h3>
+                                    <div class="w-12 h-1 bg-white/50 mx-auto my-4 rounded"></div>
+                                    ${question['備註'] ? `<p class="text-white/90 text-sm leading-relaxed">${question['備註']}</p>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between gap-4 mt-auto">
+                        <button onclick="prevTrivia()" class="nature-btn flex-1 justify-center" ${currentQuestionIndex === 0 ? 'disabled style="opacity:0.5"' : ''}>
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> 上一張
+                        </button>
+                        <button onclick="nextTrivia()" class="nature-btn flex-1 justify-center" ${currentQuestionIndex === total - 1 ? 'disabled style="opacity:0.5"' : ''}>
+                            下一張 <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            if(window.lucide) lucide.createIcons();
+        }
+
+        function nextTrivia() {
+            if(currentQuestionIndex < currentQuizData.length - 1) {
+                currentQuestionIndex++;
+                renderTriviaCard();
+            }
+        }
+        function prevTrivia() {
+            if(currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderTriviaCard();
+            }
+        }
+
+        /* --- Helpers --- */
+        function generateOptionsHtml(q, clickHandlerName) {
+            const opts = ['A', 'B', 'C', 'D'];
+            let html = '';
+            opts.forEach(opt => {
+                const text = q[`選項${opt}`];
+                if(text) {
+                    html += `
+                        <button id="opt-${opt}" onclick="${clickHandlerName}('${opt}')" class="quiz-option w-full text-left p-4 rounded-xl border border-gray-200 bg-white/60 hover:bg-white transition-all flex items-center gap-3 group">
+                            <span class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-sm text-gray-500 font-bold group-hover:border-[#6B8E23] group-hover:text-[#6B8E23] transition-colors bg-white">${opt}</span>
+                            <span class="flex-1 text-[#3E3B39] font-medium">${text}</span>
+                        </button>
+                    `;
+                }
+            });
+            return html;
+        }
+
+        function getTodayString() {
+            const d = new Date();
+            return `${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+        }
+
+        function extractMonthDay(dateStr) {
+            if (!dateStr) return null;
+            if (dateStr.includes('T') && dateStr.includes('Z')) {
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                    const taipeiTime = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+                    const mm = (taipeiTime.getUTCMonth() + 1).toString().padStart(2, '0');
+                    const dd = taipeiTime.getUTCDate().toString().padStart(2, '0');
+                    return `${mm}-${dd}`;
+                }
+            }
+            let s = dateStr.replace(/[^\d\-\/\.]/g,'');
+            let p = s.split(/[-/.]/).filter(x=>x);
+            if(p.length>=2) return `${parseInt(p[p.length-2]).toString().padStart(2,'0')}-${parseInt(p[p.length-1]).toString().padStart(2,'0')}`;
+            return null;
+        }
+
+        function categorizeData(data) {
+            const c = { verses:[], devotionals:[], school:[], games:[] };
+            data.forEach(i => {
+                let t = ''; 
+                for(let k in i) if(/title|name/i.test(k)) t = i[k].toLowerCase();
+                if(t.includes('學霸')||t.includes('測驗')||t.includes('冷知識')) c.school.push(i);
+                else if(t.includes('遊戲')||t.includes('破冰')) c.games.push(i);
+                else c.devotionals.push(i); 
+            });
+            return c;
+        }
+
+        function renderDailyDevotional(items) {
+            const container = document.getElementById('daily-content');
+            const today = getTodayString();
+            
+            // 1. Get Today's Reading Plan
+            const dObj = new Date();
+            const m = dObj.getMonth() + 1;
+            const d = dObj.getDate();
+            const keys = [
+                `${m}/${d}`, // 1/10
+                `${m.toString().padStart(2,'0')}/${d.toString().padStart(2,'0')}`, // 01/10
+                `${m}月${d}日`, // 1月10日
+                `${m}-${d}` // 1-10
+            ];
+
+            let todayPlan = null;
+            // bibleReadingPlan is const, check if we have data for today
+            const todayKey = `1-${d}`; // Hardcoded to January for demo as per generateReadingPlan
+            // For real app, use `${m}-${d}`
+            
+            // We use the generated plan
+            // Note: The generateReadingPlan function currently only populates for January (1-x).
+            // To make it work for current date, we'll check if we have an entry.
+            // If not (e.g. it's Feb), we might not show anything or show a default.
+            // For demo robustness, let's just check the key we generated.
+            
+            // Actually, let's try to find it dynamically based on the keys array if we had a full year
+            // But since we only generated `1-d`, let's just look up `1-d` if the user is testing today (Jan 10).
+            // If the user is testing on another month, we might want to fallback or just show empty.
+            
+            // Let's just use the key based on current date for now, assuming January for testing or update generation logic.
+            // Update: Since the user asked for "One Year Bible", normally it covers all dates.
+            // I'll stick to looking up `${m}-${d}` in the object. 
+            // If it's undefined, it just won't show.
+            
+            // Fix: The previous logic relied on `readingPlanData` array (CSV).
+            // Now we use `bibleReadingPlan` object.
+            
+            const plan = bibleReadingPlan[`${m}-${d}`];
+
+            let html = '';
+
+            // Render Reading Plan "今日課表"
+            if (plan) {
+                html += `
+                    <div class="mb-10 text-center w-full">
+                        <div class="inline-block px-6 py-2 border-b-2 border-[#6B8E23] mb-6">
+                            <h2 class="text-2xl font-serif text-[#3E3B39] tracking-widest">今日課表</h2>
+                            <p class="text-xs text-[#8D7B68] uppercase mt-1">Today's Schedule (${today})</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl mx-auto px-2">
+                            <button onclick="openScripture('${plan.ot.replace(/'/g, "\\'")}')" class="reading-plan-btn">
+                                <span class="label">OLD TESTAMENT</span>
+                                <span class="content">${plan.ot}</span>
+                                <i data-lucide="book-open"></i>
+                            </button>
+                            <button onclick="openScripture('${plan.nt.replace(/'/g, "\\'")}')" class="reading-plan-btn">
+                                <span class="label">NEW TESTAMENT</span>
+                                <span class="content">${plan.nt}</span>
+                                <i data-lucide="book-open"></i>
+                            </button>
+                            <button onclick="openScripture('${plan.ps.replace(/'/g, "\\'")}')" class="reading-plan-btn">
+                                <span class="label">PSALMS</span>
+                                <span class="content">${plan.ps}</span>
+                                <i data-lucide="book-open"></i>
+                            </button>
+                            <button onclick="openScripture('${plan.pr.replace(/'/g, "\\'")}')" class="reading-plan-btn">
+                                <span class="label">PROVERBS</span>
+                                <span class="content">${plan.pr}</span>
+                                <i data-lucide="book-open"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="divider-water opacity-50 mb-10 w-full"></div>
+                `;
+            } else {
+                 // Fallback message if no plan found (e.g. not Jan)
+                 html += `<div class="mb-6 text-center text-sm text-gray-400">今日(${today})無指定讀經進度</div>`;
+            }
+
+            // 2. Render Existing Devotionals
+            const todayItems = items.filter(i => {
+                let k = Object.keys(i).find(key => /date|time|日期/i.test(key));
+                return k && extractMonthDay(i[k]) === today;
+            });
+            
+            if(todayItems.length > 0) {
+                todayItems.forEach(i => html += generateSingleDevotionalHtml(i));
+            } else if (!plan) {
+                html += `<div class="py-10"><p class="text-[#8D7B68]">今日暫無課程 (${today})</p><button onclick="showFullSchedule()" class="nature-btn mt-4">查看課表</button></div>`;
+            }
+
+            container.innerHTML = html;
+            if(window.lucide) lucide.createIcons();
+        }
+
+        function generateSingleDevotionalHtml(item) {
+             let contentHtml = `<div class="text-left w-full space-y-6 text-[#585858] font-light text-lg">`;
+             let buttonsArray = []; 
+             let skipKeys = []; 
+
+             const keys = Object.keys(item);
+             let titleKey = keys.find(k => /title|name|標題|名稱/i.test(k)) || 'No Title';
+             const title = item[titleKey];
+             contentHtml += `<h2 class="text-3xl font-serif text-[#3E3B39] mb-4 text-center">${title}</h2>`;
+             
+             // 1. Intelligent Merging
+             const songNameKey = keys.find(k => /^(song|hymn|worship|praise|詩歌|敬拜|讚美|領詩|獨唱)$/i.test(k) && typeof item[k] === 'string' && !/(https?:\/\/|www\.)/.test(item[k]));
+             const linkKey = keys.find(k => /^(link|url|video|youtube|連結|網址)$/i.test(k) && typeof item[k] === 'string' && /(https?:\/\/|www\.)/.test(item[k]));
+
+             if (songNameKey && linkKey) {
+                 const urlMatch = item[linkKey].match(/(https?:\/\/[^\s]+)|(www\.[^\s]+)/);
+                 if (urlMatch) {
+                     let url = urlMatch[0];
+                     if (url.startsWith('www.')) url = 'https://' + url;
+                     url = url.replace(/[\)\]\}\>]+$/, '');
+                     
+                     buttonsArray.push({ type: 'link', url: url, text: item[songNameKey] });
+                     skipKeys.push(songNameKey);
+                     skipKeys.push(linkKey);
+                 }
+             }
+
+             // 2. Process remaining keys
+             keys.forEach(k => {
+                 if (k === titleKey || /date|time/.test(k)) return;
+                 if (skipKeys.includes(k)) return; 
+
+                 const val = item[k];
+                 
+                 // Identify scripture keys - ADD 'ref' here
+                 const isBibleKey = /scripture|reading|bible|chapter|ref|經文|讀經/i.test(k);
+                 
+                 // MODIFY: Skip scripture keys entirely as requested
+                 if (isBibleKey) return;
+
+                 const hasUrl = typeof val === 'string' && /(https?:\/\/[^\s]+)|(www\.[^\s]+)/.test(val);
+
+                 if (hasUrl) {
+                     const urlMatch = val.match(/(https?:\/\/[^\s]+)|(www\.[^\s]+)/);
+                     if (urlMatch) {
+                         let url = urlMatch[0];
+                         if (url.startsWith('www.')) url = 'https://' + url;
+                         url = url.replace(/[\)\]\}\>]+$/, '');
+
+                         let text = val.replace(urlMatch[0], '').trim();
+                         text = text.replace(/^[:：\(\[\{\s]+|[\)\]\}\s]+$/g, '').trim();
+                         
+                         if (!text) {
+                             if (/^(link|url)$/i.test(k)) {
+                                 text = item[songNameKey] || "詩歌"; 
+                             } else {
+                                 text = k; 
+                             }
+                         }
+                         
+                         buttonsArray.push({ type: 'link', url: url, text: text });
+                     } else {
+                         contentHtml += `<p class="whitespace-pre-wrap">${val}</p>`;
+                     }
+                 }
+                 else {
+                     contentHtml += `<p class="whitespace-pre-wrap">${val}</p>`;
+                 }
+             });
+             
+             contentHtml += `</div>`; 
+             
+             if (buttonsArray.length > 0) {
+                 contentHtml += `<div class="mt-10 pt-6 border-t border-[rgba(107,142,35,0.2)] w-full flex flex-col gap-4 items-center">`;
+                 
+                 buttonsArray.forEach(btn => {
+                     if(btn.type === 'link') {
+                         contentHtml += `
+                            <a href="${btn.url}" target="_blank" class="w-full max-w-md block group">
+                                <div class="bg-[#6B8E23] hover:bg-[#556B2F] text-white rounded-2xl py-3 px-6 text-center shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 transform group-hover:-translate-y-0.5">
+                                    <span class="text-sm font-light opacity-90 mr-1">今日點播</span>
+                                    <span class="text-lg font-medium tracking-wide truncate border-b border-white/30 pb-0.5">${btn.text}</span>
+                                    <i data-lucide="headphones" class="w-5 h-5 flex-shrink-0 ml-1"></i>
+                                </div>
+                            </a>
+                         `;
+                     } else if (btn.type === 'bible') {
+                         contentHtml += `
+                            <button onclick="openScripture('${btn.safeVal}')" class="w-full max-w-md nature-btn scripture-btn py-3 rounded-2xl flex items-center justify-center gap-2 text-base">
+                                <i data-lucide="book-open" class="w-5 h-5"></i>
+                                <span>閱讀經文: ${btn.val}</span>
+                            </button>
+                         `;
+                     }
+                 });
+                 
+                 contentHtml += `</div>`;
+             }
+             
+             return contentHtml;
+        }
+        
+        function renderSection(items, cId, sId) {
+            const c = document.getElementById(cId);
+            if(items.length===0) { c.innerHTML = `<div class="col-span-full text-center py-10 opacity-50">暫無資料</div>`; return; }
+            let h = '';
+            items.forEach(i => {
+                let title = Object.values(i)[0]; 
+                h += `<div class="clean-card"><h3 class="font-bold text-[#3E3B39] mb-2">${title}</h3></div>`; 
+            });
+            c.innerHTML = h;
+        }
+        
+        function showFullSchedule() {
+             const c = document.getElementById('daily-content');
+             const sorted = window.sortedDevotionals || [];
+             let h = '<div class="space-y-2 text-left w-full max-w-lg mx-auto">';
+             sorted.forEach((i, idx) => {
+                 let k = Object.keys(i).find(key => /date|time/.test(key)), d = extractMonthDay(i[k]);
+                 let tKey = Object.keys(i).find(key => /title|name/.test(key)), t = i[tKey] || 'Untitled';
+                 h += `<div onclick="renderSpecificItem(${idx})" class="p-3 border rounded cursor-pointer hover:bg-[rgba(255,255,255,0.4)] flex justify-between bg-[rgba(255,255,255,0.2)]"><span>${d}</span> <span>${t}</span></div>`;
+             });
+             h += '</div><div class="text-center mt-4"><button onclick="resetDailyView()" class="nature-btn">返回今日</button></div>';
+             c.innerHTML = h;
+             if(window.lucide) lucide.createIcons();
+        }
+        
+        function renderSpecificItem(idx) {
+             const item = (window.sortedDevotionals || [])[idx];
+             const container = document.getElementById('daily-content');
+             container.innerHTML = generateSingleDevotionalHtml(item) + '<div class="text-center mt-6"><button onclick="showFullSchedule()" class="nature-btn">返回列表</button></div>';
+             if(window.lucide) lucide.createIcons();
+        }
+
+        function resetDailyView() { renderDailyDevotional(devotionalsData); }
+
+        init();
+    </script>
+</body>
+</html>
